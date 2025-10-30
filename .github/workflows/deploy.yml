@@ -1,11 +1,21 @@
 name: Build and Deploy
 on: 
   workflow_dispatch
+permissions:
+  contents: read
+  security-events: write
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+      
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
       - name: Build image
         run: |
           docker build -t myapp:latest .
@@ -22,7 +32,7 @@ jobs:
         run: |
           az webapp config container set \
           -g ss-lab-rg \
-          -n sslab-webappskywalker \
+          -n sslab-webapp \
           --container-image-name sslablabacrskywalker.azurecr.io/myapp:latest \
           --container-registry-url https://sslablabacrskywalker.azurecr.io \
           --container-registry-user ${{secrets.ACR_USER}} \
